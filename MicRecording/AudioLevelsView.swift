@@ -17,6 +17,6 @@ struct AudioLevelsView: NSViewRepresentable {
     }
     
     func updateNSView(_ levelMeter: NSLevelIndicator, context: Context) {
-        levelMeter.floatValue = audioLevels.average * 10
+        levelMeter.floatValue = audioLevels.level * 10
     }
 }

@@ -4,6 +4,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var audioRecorder = AudioRecorder()
+    @StateObject var audioEngine = AudioEngine()
     
     var body: some View {
         VStack {
@@ -11,19 +12,42 @@ struct ContentView: View {
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             Text("Hello, world!")
-            AudioLevelsView(audioLevels: audioRecorder.audioLevels)
             HStack {
-                if audioRecorder.state == .stopped {
-                    Button {
-                        audioRecorder.record()
-                    } label: {
-                        Text("Start")
+                VStack {
+                    AudioLevelsView(audioLevels: audioRecorder.audioLevels)
+                    HStack {
+                        if audioRecorder.state == .stopped {
+                            Button {
+                                audioRecorder.record()
+                            } label: {
+                                Text("Start Recording")
+                            }
+                        } else {
+                            Button {
+                                audioRecorder.stopRecording()
+                            } label: {
+                                Text("Stop Recording")
+                            }
+                        }
                     }
-                } else {
-                    Button {
-                        audioRecorder.stopRecording()
-                    } label: {
-                        Text("Stop")
+                }
+                
+                VStack {
+                    AudioLevelsView(audioLevels: audioEngine.audioLevels)
+                    HStack {
+                        if audioEngine.state == .stopped {
+                            Button {
+                                audioEngine.startStreaming()
+                            } label: {
+                                Text("Start Streaming")
+                            }
+                        } else {
+                            Button {
+                                audioEngine.stopStreaming()
+                            } label: {
+                                Text("Stop Streaming")
+                            }
+                        }
                     }
                 }
             }
