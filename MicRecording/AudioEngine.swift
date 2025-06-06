@@ -34,18 +34,9 @@ class AudioEngine: NSObject, ObservableObject {
             let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
             let fileURL = tempDir.appendingPathComponent("recording-from-streaming.wav")
             
-            let channel = 1
-            let sampleRate = 44_100.0
-            let settings: [String: Any] = [
-                AVFormatIDKey: Int(kAudioFormatLinearPCM),
-                AVLinearPCMIsNonInterleaved: false,
-                AVSampleRateKey: sampleRate,
-                AVNumberOfChannelsKey: channel,
-                AVLinearPCMBitDepthKey: 32
-            ]
-            let audioFile = try AVAudioFile(forWriting: fileURL, settings: settings)
+            let audioFormat =  self.audioEngine.inputNode.inputFormat(forBus: audioNodeBus)
+            let audioFile = try AVAudioFile(forWriting: fileURL, settings: audioFormat.settings)
             
-            let audioFormat =  AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sampleRate, channels: AVAudioChannelCount(channel), interleaved: false)
             self.audioEngine.inputNode.installTap(onBus: audioNodeBus, bufferSize: 4096 , format: audioFormat, block: { [weak self] buffer, _ in
                 guard let self = self else { return }
                 self.powerMeter.process(buffer: buffer)
