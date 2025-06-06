@@ -6,7 +6,6 @@ import Combine
 
 enum AudioControllerState {
     case stopped
-    case playing
     case recording
 }
 

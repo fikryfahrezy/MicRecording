@@ -29,7 +29,7 @@ class AudioEngine: NSObject, ObservableObject {
     
     func startStreaming() {
         do {
-            self.state = .playing
+            self.state = .recording
             
             let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
             let fileURL = tempDir.appendingPathComponent("recording-from-streaming.wav")

@@ -5,32 +5,28 @@ import SwiftUI
 struct ContentView: View {
     @StateObject var audioRecorder = AudioRecorder()
     @StateObject var audioEngine = AudioEngine()
-    private let ade = AudioDeviceEnumerator()
-    
-    @State private var selectedDeviceInput: AudioDeviceID?
-    
-    var audioInputDevices: [AudioDeviceEnumerator.Device] {
-        return ade.listDevices().filter { $0.input != 0 }
-    }
-    
-    var audioOutputDevices: [AudioDeviceEnumerator.Device] {
-        ade.listDevices().filter { $0.output != 0 }
-    }
+    @StateObject var audioCaptureRecording = AudioCapture()
+    @StateObject var audioCaptureStreaming = AudioCapture()
 
+    @State private var selectedDeviceInput: String = "<None>"
+    
+    var audioInputDevices: [AVCaptureDevice] {
+        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.microphone],
+                                                                mediaType: .audio,
+                                                                position: .unspecified)
+        return discoverySession.devices
+    }
+    
+    var selectedAudioInputDevice: AVCaptureDevice? {
+        audioInputDevices.first { $0.uniqueID == selectedDeviceInput }
+    }
+    
     var body: some View {
         VStack {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             Text("Hello, world!")
-            Form {
-                Picker("Input Devices", selection: $selectedDeviceInput) {
-                    ForEach(audioInputDevices, id: \.deviceID) { device in
-                        Text(device.name).tag(device.deviceID)
-                    }
-                }
-                
-            }
             HStack {
                 VStack {
                     AudioLevelsView(audioLevels: audioRecorder.audioLevels)
@@ -65,6 +61,60 @@ struct ContentView: View {
                                 audioEngine.stopStreaming()
                             } label: {
                                 Text("Stop Streaming")
+                            }
+                        }
+                    }
+                }
+            }
+            Form {
+                Picker("Input Devices", selection: $selectedDeviceInput) {
+                    Text("<None>").tag("<None>")
+                    ForEach(audioInputDevices, id: \.uniqueID) { device in
+                        Text(device.localizedName).tag(device.uniqueID)
+                    }
+                }
+                
+            }
+            if let selectedAudioInputDevice = selectedAudioInputDevice  {
+                HStack {
+                    VStack {
+                        AudioLevelsView(audioLevels: audioCaptureRecording.audioLevels)
+                        HStack {
+                            if audioCaptureRecording.state == .stopped {
+                                Button {
+                                    Task {
+                                        await audioCaptureRecording.startRecording(audioDevice: selectedAudioInputDevice)
+                                    }
+                                } label: {
+                                    Text("Start Recording")
+                                }
+                            } else {
+                                Button {
+                                    audioCaptureRecording.stopRecording()
+                                } label: {
+                                    Text("Stop Recording")
+                                }
+                            }
+                        }
+                    }
+                    
+                    VStack {
+                        AudioLevelsView(audioLevels: audioCaptureStreaming.audioLevels)
+                        HStack {
+                            if audioCaptureStreaming.state == .stopped {
+                                Button {
+                                    Task {
+                                        await audioCaptureStreaming.startStream(audioDevice: selectedAudioInputDevice)
+                                    }
+                                } label: {
+                                    Text("Start Streaming")
+                                }
+                            } else {
+                                Button {
+                                    audioCaptureStreaming.stopStreaming()
+                                } label: {
+                                    Text("Stop Streaming")
+                                }
                             }
                         }
                     }
